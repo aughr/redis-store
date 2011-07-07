@@ -30,10 +30,14 @@ module Rack
           cache.get key
         end
 
-        def write(body)
+        def write(body, ttl=nil)
           buf = StringIO.new
           key, size = slurp(body){|part| buf.write(part) }
-          [key, size] if cache.set(key, buf.string)
+          if ttl
+            [key, size] if cache.setex(key, ttl, buf.string)
+          else
+            [key, size] if cache.set(key, buf.string)
+          end
         end
 
         def purge(key)
